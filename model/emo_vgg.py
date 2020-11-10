@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
 
 def init_xavier(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
@@ -21,6 +20,10 @@ class VGG(nn.Module):
         out = F.dropout(out, p=0.5, training=self.training)
         out = self.classifier(out)
         return out
+
+    def build_model(self):
+        model = nn.Sequential(self.features)
+        return model.to(self.device)
 
     def _make_layers(self, cfg):
         layers = []

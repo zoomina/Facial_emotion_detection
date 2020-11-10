@@ -6,7 +6,7 @@
 
 <br>
 
-## Dependencies
+## Requirements
 
 ```
 python=3.6
