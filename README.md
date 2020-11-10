@@ -6,12 +6,13 @@
 
 <br>
 
-## Requirement
+## Dependencies
 
 ```
 python=3.6
 numpy=1.19.2
 pandas=1.1.3
+opencv
 torch=1.6.0+cu101
 torchvision=0.7.0+cu101
 ```
