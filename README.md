@@ -19,8 +19,6 @@ torchvision=0.7.0+cu101
 
 ## Dataset
 
-- WIDER FACE: A Face Detection Benchmark
-  http://shuoyang1213.me/WIDERFACE/
 - Facial Expression Recognition(FER)Challenge
   https://www.kaggle.com/ashishpatel26/facial-expression-recognitionferchallenge/notebooks
 

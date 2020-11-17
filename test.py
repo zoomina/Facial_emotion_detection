@@ -1,15 +1,23 @@
 import torch
+import tqdm
 
-def test(self, X, y):
-    X = torch.tensor(X, dtype=torch.float).to(self.device)
-    y = torch.tensor(y, dtype=torch.float).to(self.device)
+def calc_accuracy(X,Y):
+    max_vals, max_indices = torch.max(X, 1)
+    test_acc = (max_indices == Y).sum().data.cpu().numpy()/max_indices.size()[0]
+    return test_acc
 
-    self.model.eval()
+def test(test_dataloader, model, device):
+    model.eval()
+    answer=[]
+    test_acc = 0.0
     with torch.no_grad():
-        test_summary = {"loss": [], "output": []}
-        for i in range(X.shape[0]):
-            output = self.model(X[i].unsqueeze(dim=0))
-            loss = self.loss(output, y[i])
-            test_summary["loss"].append(loss.detach().cpu().numpy())
-
-        print("Test complete : avg. loss :", sum(test_summary["loss"]) / len(test_summary["loss"]))
+        for batch_id, (token_ids, valid_length, segment_ids, label) in enumerate(tqdm(test_dataloader)):
+            token_ids = token_ids.long().to(device)
+            segment_ids = segment_ids.long().to(device)
+            valid_length= valid_length
+            label = label.long().to(device)
+            out = model(token_ids, valid_length, segment_ids)
+            max_vals, max_indices = torch.max(out, 1)
+            answer.append(max_indices.cpu().clone().numpy())
+            test_acc += calc_accuracy(out, label)
+    print(test_acc / (batch_id+1))
