@@ -15,6 +15,8 @@ pandas=1.1.3
 opencv
 torch=1.6.0+cu101
 torchvision=0.7.0+cu101
+facenet_pytorch
+tensorboard
 ```
 
 ## Dataset
@@ -28,3 +30,8 @@ torchvision=0.7.0+cu101
 
 <br>
 
+----
+
+> **reference** <br>
+> Face Recognition Using Pytorch : https://github.com/timesler/facenet-pytorch <br>
+> VGG : 
