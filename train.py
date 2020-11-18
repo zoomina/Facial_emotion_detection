@@ -13,19 +13,18 @@ def calc_accuracy(X,Y):
     return train_acc
 
 def train(train_dataloader, dev_dataloader, model, device, batch_size, optimizer, criterion, epoch):
+    max_grad_norm = 1
+    log_interval = 200
     for e in range(epoch):
         train_acc = 0.0
         test_acc = 0.0
         scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
         model.train()
-        for batch_id, (token_ids, valid_length, segment_ids, label) in enumerate(tqdm(train_dataloader)):
+        for batch_id, (x, y) in enumerate(tqdm(train_dataloader)):
             optimizer.zero_grad()
-            token_ids = token_ids.long().to(device)
-            segment_ids = segment_ids.long().to(device)
-            valid_length = valid_length
-            label = label.long().to(device)
-            out = model(token_ids, valid_length, segment_ids)
-            loss = criterion(out, label)
+            y = y.long().to(device)
+            out = model(x, y)
+            loss = criterion(out, y)
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
             optimizer.step()
