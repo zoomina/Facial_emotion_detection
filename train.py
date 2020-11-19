@@ -5,8 +5,6 @@ import os
 from model.emo_vgg import *
 from load_data import *
 
-PATH = "./result"
-
 def calc_accuracy(X,Y):
     max_vals, max_indices = torch.max(X, 1)
     train_acc = (max_indices == Y).sum().data.cpu().numpy()/max_indices.size()[0]
@@ -20,11 +18,11 @@ def train(train_dataloader, dev_dataloader, model, device, batch_size, optimizer
         test_acc = 0.0
         scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
         model.train()
-        for batch_id, (x, y) in enumerate(tqdm(train_dataloader)):
+        for batch_id, (img, label) in enumerate(train_dataloader):
             optimizer.zero_grad()
-            y = y.long().to(device)
-            out = model(x, y)
-            loss = criterion(out, y)
+            label = label.long().to(device)
+            out = model(img, label)
+            loss = criterion(out, label)
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
             optimizer.step()
@@ -35,12 +33,10 @@ def train(train_dataloader, dev_dataloader, model, device, batch_size, optimizer
                                                                          train_acc / (batch_id + 1)))
         print("epoch {} train acc {}".format(e + 1, train_acc / (batch_id + 1)))
         model.eval()  # 모델 평가 부분
-        for batch_id, (token_ids, valid_length, segment_ids, label) in enumerate(tqdm(dev_dataloader)):
-            token_ids = token_ids.long().to(device)
-            segment_ids = segment_ids.long().to(device)
-            valid_length = valid_length
+        for batch_id, (img, label) in enumerate(dev_dataloader):
+            img = img.to(device)
             label = label.long().to(device)
-            out = model(token_ids, valid_length, segment_ids)
+            out = model(img)
             test_acc += calc_accuracy(out, label)
         print("epoch {} test acc {}".format(e + 1, test_acc / (batch_id + 1)))
 
@@ -49,10 +45,16 @@ def train(train_dataloader, dev_dataloader, model, device, batch_size, optimizer
         os.mkdir("./result")
     torch.save(model.state_dict(), 'result/epoch{}_batch{}.pt'.format(epoch, batch_size))
 
-def main():
+if __name__ == "__main__":
     model = VGG().build_model()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    batch_size = 64
+    batch_size = 16
+    num_workers = 1
+    epoch = 10
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
     criterion = nn.MSELoss()
-    train_dataloader = data_loader("data/train", workers=2, batch_size=64)
+    data_dir = "data/train"
+
+    train_dataloader, dev_dataloader = data_loader(data_dir, num_workers, batch_size)
+
+    train(train_dataloader, dev_dataloader, model, device, batch_size, optimizer, criterion, epoch)
