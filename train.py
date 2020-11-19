@@ -65,9 +65,9 @@ def train(train_dataloader, dev_dataloader, model, device, batch_size, optimizer
 if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = VGG(num_classes=7).to(device)
-    batch_size = 32
+    batch_size = 8
     num_workers = 1
-    epoch = 10
+    epoch = 30
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
     criterion = nn.CrossEntropyLoss()
     data_dir = "data/test"
