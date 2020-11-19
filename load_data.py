@@ -1,7 +1,9 @@
-from facenet_pytorch import training
+from facenet_pytorch import training,fixed_image_standardization
+import torch
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
 from sklearn.model_selection import train_test_split
+import numpy as np
 
 
 class EmoDataset(Dataset):
@@ -9,6 +11,7 @@ class EmoDataset(Dataset):
         super(EmoDataset, self).__init__()
         self.data = datasets.ImageFolder(image_path, transform)
         self.image_path = image_path
+        self.transform = transform
         self.data.classes, self.data.class_to_idx = self._find_classes()
 
     def _find_classes(self):
@@ -27,9 +30,15 @@ class EmoDataset(Dataset):
 
         return im_dir, class_to_idx[im_dir]
 
+    def __getitem__(self, idx):
+        img_tensor = self.transform(datasets[idx])
+        return (img_tensor)
+
 def data_loader(data_dir, workers, batch_size):
-    dataset = datasets.ImageFolder(data_dir, transform=transforms.Resize((224, 224)))
-    dataset_train, dataset_test = train_test_split(dataset, test_size=0.2, random_state=123)
+    dataset = datasets.ImageFolder(data_dir, transform=transforms.Compose([np.float32, transforms.ToTensor(), transforms.Resize((224, 224)), fixed_image_standardization]))
+    train_size = int(len(dataset)*0.8)
+    dev_size = len(dataset) - train_size
+    dataset_train, dataset_test = torch.utils.data.random_split(dataset, [train_size, dev_size])
 
     train_loader = DataLoader(
         dataset_train,
@@ -48,7 +57,7 @@ def data_loader(data_dir, workers, batch_size):
     return train_loader, test_loader
 
 def test_loader(data_dir, workers, batch_size):
-    dataset = datasets.ImageFolder(data_dir, transform=transforms.Resize((224, 224)))
+    dataset = datasets.ImageFolder(data_dir, transform=transforms.Compose([np.float32, transforms.ToTensor(), transforms.Resize((224, 224)), fixed_image_standardization]))
 
     loader = DataLoader(
         dataset,

@@ -1,4 +1,5 @@
 from torch.optim.lr_scheduler import StepLR
+from torchvision.transforms import ToTensor
 import tqdm
 import os
 
@@ -20,8 +21,9 @@ def train(train_dataloader, dev_dataloader, model, device, batch_size, optimizer
         model.train()
         for batch_id, (img, label) in enumerate(train_dataloader):
             optimizer.zero_grad()
-            label = label.long().to(device)
-            out = model(img, label)
+            img = torch.stack(img).to(device)
+            label = torch.tensor(label).long().to(device)
+            out = model(img)
             loss = criterion(out, label)
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
@@ -34,26 +36,25 @@ def train(train_dataloader, dev_dataloader, model, device, batch_size, optimizer
         print("epoch {} train acc {}".format(e + 1, train_acc / (batch_id + 1)))
         model.eval()  # 모델 평가 부분
         for batch_id, (img, label) in enumerate(dev_dataloader):
-            img = img.to(device)
-            label = label.long().to(device)
+            img = torch.stack(img).to(device)
+            label = torch.FloatTensor(label).to(device)
             out = model(img)
             test_acc += calc_accuracy(out, label)
         print("epoch {} test acc {}".format(e + 1, test_acc / (batch_id + 1)))
-
 
     if not os.path.exists("./result"):
         os.mkdir("./result")
     torch.save(model.state_dict(), 'result/epoch{}_batch{}.pt'.format(epoch, batch_size))
 
 if __name__ == "__main__":
-    model = VGG().build_model()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    batch_size = 16
+    model = VGG(num_classes=7).to(device)
+    batch_size = 32
     num_workers = 1
     epoch = 10
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
-    criterion = nn.MSELoss()
-    data_dir = "data/train"
+    criterion = nn.CrossEntropyLoss()
+    data_dir = "data/test"
 
     train_dataloader, dev_dataloader = data_loader(data_dir, num_workers, batch_size)
 
