@@ -2,12 +2,8 @@ import torch
 import tqdm
 
 from load_data import *
-from model.emo_vgg import *
-
-def calc_accuracy(X,Y):
-    max_vals, max_indices = torch.max(X, 1)
-    test_acc = (max_indices == Y).sum().data.cpu().numpy()/max_indices.size()[0]
-    return test_acc
+from model import *
+from utils import *
 
 def test(test_dataloader, model, device):
     model.eval()

@@ -29,8 +29,8 @@ class VGG(nn.Module):
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         x = self.classifier(x)
-        #x = nn.Softmax(x)
-        x = torch.sigmoid(x)
+        x = F.log_softmax(x)
+        #x = torch.sigmoid(x)
         return x
 
     def _make_layers(self, cfg):

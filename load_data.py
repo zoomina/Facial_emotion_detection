@@ -2,9 +2,7 @@ from facenet_pytorch import training,fixed_image_standardization
 import torch
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
-from sklearn.model_selection import train_test_split
 import numpy as np
-
 
 class EmoDataset(Dataset):
     def __init__(self, image_path, transform=None):
@@ -35,7 +33,8 @@ class EmoDataset(Dataset):
         return (img_tensor)
 
 def data_loader(data_dir, workers, batch_size):
-    dataset = datasets.ImageFolder(data_dir, transform=transforms.Compose([np.float32, transforms.ToTensor(), transforms.Grayscale(), transforms.Resize((224, 224)), fixed_image_standardization]))
+    transform = transforms.Compose([transforms.Grayscale(), transforms.ToTensor(), fixed_image_standardization])
+    dataset = datasets.ImageFolder(data_dir, transform=transform)
     train_size = int(len(dataset)*0.8)
     dev_size = len(dataset) - train_size
     dataset_train, dataset_test = torch.utils.data.random_split(dataset, [train_size, dev_size])
@@ -57,7 +56,8 @@ def data_loader(data_dir, workers, batch_size):
     return train_loader, test_loader
 
 def test_loader(data_dir, workers, batch_size):
-    dataset = datasets.ImageFolder(data_dir, transform=transforms.Compose([np.float32, transforms.Grayscale(), transforms.ToTensor(), transforms.Resize((224, 224)), fixed_image_standardization]))
+    transform = transforms.Compose([transforms.ToTensor(), fixed_image_standardization])
+    dataset = datasets.ImageFolder(data_dir, transform=transform)
 
     loader = DataLoader(
         dataset,
